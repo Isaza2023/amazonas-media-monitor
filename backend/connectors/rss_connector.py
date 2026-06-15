@@ -1,7 +1,24 @@
 import feedparser
 import re
+import requests
 from datetime import datetime
 from backend.config import RSS_FEEDS, SEARCH_KEYWORDS
+
+def resolve_google_news_url(url: str) -> str:
+    """Resuelve la URL de redirección de Google News para obtener el enlace original."""
+    if "news.google.com" not in url:
+        return url
+    try:
+        # Usamos HEAD request primero para velocidad
+        response = requests.head(url, allow_redirects=True, timeout=5)
+        return response.url
+    except Exception:
+        try:
+            # Fallback a GET request si HEAD falla
+            response = requests.get(url, allow_redirects=True, timeout=5)
+            return response.url
+        except Exception:
+            return url
 from backend.database import NewsArticle
 from backend.utils import (
     clean_html, normalize_date, extract_location, extract_keywords, 
@@ -44,6 +61,9 @@ def fetch_rss_news(db) -> int:
                 url = entry.get("link", "")
                 if not url:
                     continue
+                
+                # Resolver URL original
+                url = resolve_google_news_url(url)
                 
                 try:
                     # Evitar duplicados rápidos en DB

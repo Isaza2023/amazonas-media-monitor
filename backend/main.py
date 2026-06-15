@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_, or_, func
 
 from backend.database import init_db, get_db, NewsArticle, ApiKeyConfig
-from backend.config import PORT, HOST
+from backend.config import PORT, HOST, DATABASE_URL
 from backend.utils import (
     normalize_date, extract_location, extract_keywords, 
     classify_relevance, detect_alert, detect_topic
@@ -166,14 +166,22 @@ def set_update_interval(minutes: int = Query(..., gt=0)):
     UPDATE_INTERVAL_MINUTES = minutes
     return {"message": f"Intervalo actualizado a {minutes} minutos"}
 
+def run_manual_fetch_task():
+    from backend.database import SessionLocal
+    db = SessionLocal()
+    try:
+        update_all_sources(db)
+    finally:
+        db.close()
+
 @app.post("/api/fetch")
-def trigger_manual_fetch(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def trigger_manual_fetch(background_tasks: BackgroundTasks):
     """Ejecuta una actualización manual en segundo plano para no bloquear al usuario."""
     global is_fetching
     if is_fetching:
         return {"status": "running", "message": "El monitoreo ya se está ejecutando."}
     
-    background_tasks.add_task(update_all_sources, db)
+    background_tasks.add_task(run_manual_fetch_task)
     return {"status": "started", "message": "Actualización de fuentes iniciada en segundo plano."}
 
 @app.get("/api/articles")
@@ -339,7 +347,10 @@ def get_stats(db: Session = Depends(get_db)):
     base_query = db.query(NewsArticle).filter(NewsArticle.status != "Descartado")
     
     # 1. Noticias por día (últimos 15 días)
-    day_format = func.strftime('%Y-%m-%d', NewsArticle.publish_date)
+    if DATABASE_URL.startswith("sqlite"):
+        day_format = func.strftime('%Y-%m-%d', NewsArticle.publish_date)
+    else:
+        day_format = func.to_char(NewsArticle.publish_date, 'YYYY-MM-DD')
     news_by_day = base_query.with_entities(day_format, func.count(NewsArticle.id))\
         .group_by(day_format)\
         .order_by(day_format)\

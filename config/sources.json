@@ -1,0 +1,224 @@
+{
+  "monitored_sources": [
+    {
+      "id": "google_news_rss",
+      "name": "Google News RSS",
+      "type": "Noticia",
+      "target": "Amazonas Colombia / Leticia / Puerto Nariño",
+      "url": "https://news.google.com/rss/search?q=Amazonas+Colombia&hl=es&gl=CO&ceid=CO:es",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 15 minutos",
+      "observations": "Búsqueda automatizada de feeds públicos con palabras clave de seguridad."
+    },
+    {
+      "id": "gdelt_project",
+      "name": "GDELT Project API",
+      "type": "Noticia",
+      "target": "Eventos de la Triple Frontera (Lat/Lon)",
+      "url": "https://api.gdeltproject.org/api/v2/doc/doc",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 30 minutos",
+      "observations": "Filtro geográfico de noticias globales por coordenadas del Amazonas."
+    },
+    {
+      "id": "medios_nacionales",
+      "name": "Medios Nacionales (El Tiempo, El Espectador, Semana)",
+      "type": "Noticia",
+      "target": "Sección Judicial / Colombia",
+      "url": "https://www.eltiempo.com/rss/colombia.xml",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 15 minutos",
+      "observations": "Monitoreo de portadas nacionales buscando menciones del Amazonas."
+    },
+    {
+      "id": "gobernacion_amazonas",
+      "name": "Gobernación del Amazonas",
+      "type": "Comunicado Oficial",
+      "target": "Boletines de Prensa y Decretos",
+      "url": "https://www.amazonas.gov.co/prensa/noticias?rss=true",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 1 hora",
+      "observations": "Monitoreo de anuncios de gobernabilidad, salud y comunidad."
+    },
+    {
+      "id": "alcaldia_leticia",
+      "name": "Alcaldía de Leticia",
+      "type": "Comunicado Oficial",
+      "target": "Decretos y Boletines de Orden Público",
+      "url": "http://www.leticia-amazonas.gov.co/noticias?rss=true",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 1 hora",
+      "observations": "Seguimiento de ordenanzas municipales y medidas de tránsito."
+    },
+    {
+      "id": "policia_colombia",
+      "name": "Policía Nacional - Seccional Amazonas",
+      "type": "Comunicado Oficial",
+      "target": "Boletines de Capturas y Resultados",
+      "url": "https://www.policia.gov.co/seccionales/amazonas?rss=true",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 30 minutos",
+      "observations": "Informes oficiales de decomisos, homicidios y detenciones en Leticia."
+    },
+    {
+      "id": "fiscalia_colombia",
+      "name": "Fiscalía General de la Nación",
+      "type": "Comunicado Oficial",
+      "target": "Imputaciones Seccional Amazonas",
+      "url": "https://www.fiscalia.gov.co/seccionales/amazonas?rss=true",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 30 minutos",
+      "observations": "Actos judiciales y de policía judicial CTI."
+    },
+    {
+      "id": "ejercito_colombia",
+      "name": "Ejército Nacional - Brigada de Selva 26",
+      "type": "Comunicado Oficial",
+      "target": "Boletines de Soberanía y Orden Público",
+      "url": "https://www.ejercito.mil.co/brigada26?rss=true",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 1 hora",
+      "observations": "Operaciones contra minería ilegal en ríos Caquetá/Putumayo."
+    },
+    {
+      "id": "armada_colombia",
+      "name": "Armada Nacional - Comando Fluvial",
+      "type": "Comunicado Oficial",
+      "target": "Monitoreo Fluvial del Amazonas",
+      "url": "https://www.armada.mil.co/fuerza-fluvial-sur?rss=true",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 30 minutos",
+      "observations": "Patrullajes binacionales y control de insumos químicos."
+    },
+    {
+      "id": "migracion_colombia",
+      "name": "Migración Colombia",
+      "type": "Comunicado Oficial",
+      "target": "Reporte de Tránsito Fronterizo",
+      "url": "https://www.migracioncolombia.gov.co/noticias?rss=true",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 1 hora",
+      "observations": "Expulsiones y deportaciones en Leticia, Puerto Nariño y Tarapacá."
+    },
+    {
+      "id": "ungrd_colombia",
+      "name": "UNGRD - Gestión del Riesgo",
+      "type": "Comunicado Oficial",
+      "target": "Calamidades e Incendios Forestales",
+      "url": "https://portal.gestiondelriesgo.gov.co/noticias?rss=true",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 1 hora",
+      "observations": "Monitoreo de emergencias climáticas y desastres ribereños."
+    },
+    {
+      "id": "ideam_colombia",
+      "name": "IDEAM - Alertas Climáticas",
+      "type": "Comunicado Oficial",
+      "target": "Alertas Meteorológicas e Hidrológicas",
+      "url": "http://www.ideam.gov.co/alertas?rss=true",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 15 minutos",
+      "observations": "Niveles del Río Amazonas y alertas tempranas de deforestación."
+    },
+    {
+      "id": "parques_nacionales",
+      "name": "Parques Nacionales Naturales (Amacayacu)",
+      "type": "Comunicado Oficial",
+      "target": "Protección Ecológica",
+      "url": "https://www.parquesnacionales.gov.co/noticias?rss=true",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 12 horas",
+      "observations": "Información sobre delitos ambientales en áreas de reserva."
+    },
+    {
+      "id": "medios_brasil",
+      "name": "Medios de Brasil (G1, Portal Tabatinga)",
+      "type": "Noticia",
+      "target": "Información Tabatinga y Benjamin Constant",
+      "url": "http://portaltabatinga.com.br/feed/",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 1 hora",
+      "observations": "Medios brasileños locales en la triple frontera."
+    },
+    {
+      "id": "medios_peru",
+      "name": "Medios de Perú (Diario La Región Iquitos)",
+      "type": "Noticia",
+      "target": "Noticias Loreto, Santa Rosa, Iquitos",
+      "url": "https://diariolaregion.com/web/feed/",
+      "status": "Activa",
+      "connection_state": "Estable",
+      "update_frequency": "Cada 1 hora",
+      "observations": "Actualidad de la provincia del Bajo Amazonas."
+    },
+    {
+      "id": "youtube_api",
+      "name": "YouTube API v3",
+      "type": "Video",
+      "target": "Búsqueda institucional y de video reportes",
+      "url": "https://www.googleapis.com/youtube/v3/search",
+      "status": "Configurable",
+      "connection_state": "Requiere API Key",
+      "update_frequency": "Cada 2 horas",
+      "observations": "Canales del CTI, Ejército Nacional y reportajes de la triple frontera."
+    },
+    {
+      "id": "twitter_api",
+      "name": "X / Twitter API v2",
+      "type": "Red Social",
+      "target": "Hashtags y cuentas de seguridad",
+      "url": "https://api.twitter.com/2/tweets/search/recent",
+      "status": "Configurable",
+      "connection_state": "Requiere Token",
+      "update_frequency": "Cada 5 minutos",
+      "observations": "Búsqueda en tiempo real de reportes vecinales y denuncias locales."
+    },
+    {
+      "id": "facebook_api",
+      "name": "Facebook Graph API",
+      "type": "Red Social",
+      "target": "Páginas oficiales de noticias locales",
+      "url": "https://graph.facebook.com/v17.0",
+      "status": "Configurable",
+      "connection_state": "Requiere Token",
+      "update_frequency": "Cada 30 minutos",
+      "observations": "Monitoreo de grupos y portales vecinales de Leticia y Tabatinga."
+    },
+    {
+      "id": "instagram_api",
+      "name": "Instagram Business API",
+      "type": "Red Social",
+      "target": "Perfiles y menciones de interés",
+      "url": "https://graph.facebook.com/v17.0/instagram_media",
+      "status": "Configurable",
+      "connection_state": "Requiere Token",
+      "update_frequency": "Cada 1 hora",
+      "observations": "Alertas visuales y publicaciones ciudadanas geolocalizadas."
+    },
+    {
+      "id": "tiktok_api",
+      "name": "TikTok Creator API",
+      "type": "Red Social",
+      "target": "Videos virales de la región",
+      "url": "https://open.tiktokapis.com/v2/video/list/",
+      "status": "Inactiva",
+      "connection_state": "No configurada",
+      "update_frequency": "Manual",
+      "observations": "Identificación de videos en vivo y denuncias de desorden público."
+    }
+  ]
+}

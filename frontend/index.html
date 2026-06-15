@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Monitoreo de Medios – Amazonas Colombia</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet.js Map CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- SheetJS (XLSX) CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- BARRA LATERAL (SIDEBAR) -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-shield-halved brand-icon"></i>
+                <div class="brand-text">
+                    <h2>CTI AMAZONAS</h2>
+                    <p>Monitoreo de Medios</p>
+                </div>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-line"></i> Estadísticas
+                </a>
+                <a href="#" class="menu-item" data-tab="feed">
+                    <i class="fa-solid fa-newspaper"></i> Feed de Noticias
+                    <span class="badge badge-new" id="menu-new-badge">0</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="alerts">
+                    <i class="fa-solid fa-triangle-exclamation text-alert"></i> Alertas Críticas
+                </a>
+                <a href="#" class="menu-item" data-tab="flash-report">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> Reporte Flash
+                    <span class="badge badge-selected" id="menu-selected-badge">0</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="sources">
+                    <i class="fa-solid fa-circle-nodes"></i> Monitoreo de Fuentes
+                </a>
+                <a href="#" class="menu-item" data-tab="settings">
+                    <i class="fa-solid fa-sliders"></i> Configuración
+                </a>
+            </nav>
+
+            <!-- PANEL DE ESTADO DE MONITOREO -->
+            <div class="sidebar-status">
+                <h3>Estado del Sistema</h3>
+                <div class="status-indicator">
+                    <span class="status-dot green" id="status-dot"></span>
+                    <span id="status-text">Conectado</span>
+                </div>
+                <div class="status-time">
+                    <p>Última actualización:</p>
+                    <strong id="last-update-time">--:--:--</strong>
+                </div>
+                <button class="btn btn-primary btn-block btn-sync" id="btn-sync-now">
+                    <i class="fa-solid fa-arrows-rotate"></i> Actualizar Ahora
+                </button>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="main-content">
+            <!-- HEADER -->
+            <header class="app-header">
+                <div class="header-title-container">
+                    <div class="institutional-badge">
+                        <i class="fa-solid fa-shield-halved brand-icon-header"></i>
+                        <span>FISCALÍA GENERAL DE LA NACIÓN – CTI SECCIONAL AMAZONAS</span>
+                    </div>
+                    <div class="header-title">
+                        <h1>Dashboard de Monitoreo de Medios – Amazonas Colombia</h1>
+                        <p class="subtitle"><i class="fa-solid fa-location-dot"></i> Monitoreo Georreferenciado: Leticia – Puerto Nariño – Triple Frontera Brasil y Perú</p>
+                    </div>
+                </div>
+                
+                <div class="header-controls">
+                    <!-- Reloj y Modo -->
+                    <div class="live-clock-wrapper">
+                        <span id="live-clock" class="control-text"><i class="fa-solid fa-clock"></i> --:--:--</span>
+                        <span id="mode-badge" class="mode-badge demo-mode"><i class="fa-solid fa-flask"></i> MODO DEMO</span>
+                    </div>
+
+                    <!-- Selector de Vista -->
+                    <div class="view-switcher">
+                        <button class="btn btn-secondary btn-sm active" id="btn-view-analyst" title="Vista detallada con filtros e informes"><i class="fa-solid fa-user-shield"></i> Vista Analista</button>
+                        <button class="btn btn-secondary btn-sm" id="btn-view-executive" title="Vista ejecutiva simplificada para directivos"><i class="fa-solid fa-eye"></i> Vista Directiva</button>
+                    </div>
+
+                    <!-- Acciones Rápidas -->
+                    <div class="quick-actions">
+                        <!-- Botón Auto-Recarga -->
+                        <button class="btn btn-secondary btn-sm btn-auto-sync" id="btn-toggle-auto-sync" title="Activar/Desactivar actualización automática">
+                            <i class="fa-solid fa-rotate"></i> Auto: <span id="auto-sync-status">ON</span>
+                        </button>
+                        <!-- Sonido -->
+                        <button class="btn btn-icon" id="sound-toggle" title="Desactivar sonido de alertas">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                        <!-- Tema -->
+                        <button class="btn btn-icon" id="theme-toggle" title="Cambiar Tema">
+                            <i class="fa-solid fa-moon"></i>
+                        </button>
+                        <!-- Pantalla Completa -->
+                        <button class="btn btn-icon" id="fullscreen-toggle" title="Pantalla Completa">
+                            <i class="fa-solid fa-expand"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- BANNER DE ALERTAS CRÍTICAS RECIENTES (TICKER) -->
+            <div class="ticker-container" id="ticker-container" style="display: none;">
+                <div class="ticker-title"><i class="fa-solid fa-triangle-exclamation"></i> ALERTA CRÍTICA:</div>
+                <div class="ticker-wrapper">
+                    <div class="ticker-scroll" id="ticker-scroll">
+                        <!-- Alertas inyectadas aquí -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABS CONTENEDORES -->
+            <!-- TAB 1: ESTADÍSTICAS Y GRÁFICOS -->
+            <section class="tab-content active" id="tab-dashboard">
+                <!-- TARJETAS DE INDICADORES (KPIs) -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon bg-indigo"><i class="fa-solid fa-database"></i></div>
+                        <div class="kpi-info">
+                            <h3>Total Publicaciones</h3>
+                            <p class="kpi-value" id="kpi-total">0</p>
+                            <span class="kpi-trend"><i class="fa-solid fa-calendar"></i> Historial Activo</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card highlight-new">
+                        <div class="kpi-icon bg-blue"><i class="fa-solid fa-newspaper"></i></div>
+                        <div class="kpi-info">
+                            <h3>Noticias Nuevas</h3>
+                            <p class="kpi-value" id="kpi-new">0</p>
+                            <span class="kpi-trend blink"><i class="fa-solid fa-circle-exclamation"></i> Por Analizar</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card highlight-alert">
+                        <div class="kpi-icon bg-rose"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="kpi-info">
+                            <h3>Alertas Críticas</h3>
+                            <p class="kpi-value" id="kpi-alerts">0</p>
+                            <span class="kpi-trend text-alert"><i class="fa-solid fa-shield"></i> Atención Inmediata</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon bg-red"><i class="fa-solid fa-radiation"></i></div>
+                        <div class="kpi-info">
+                            <h3>Relevancia Alta</h3>
+                            <p class="kpi-value" id="kpi-high">0</p>
+                            <span class="kpi-trend text-alert"><i class="fa-solid fa-star"></i> Prioridad Alta</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon bg-teal"><i class="fa-solid fa-circle-nodes"></i></div>
+                        <div class="kpi-info">
+                            <h3>Fuentes Activas</h3>
+                            <p class="kpi-value" id="kpi-sources-active">0</p>
+                            <span class="kpi-trend"><i class="fa-solid fa-check-double"></i> Conexión Estable</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon bg-green"><i class="fa-solid fa-map-location-dot"></i></div>
+                        <div class="kpi-info">
+                            <h3>Zonas Detectadas</h3>
+                            <p class="kpi-value" id="kpi-locations-count">0</p>
+                            <span class="kpi-trend"><i class="fa-solid fa-location-crosshairs"></i> Regiones Clave</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon bg-amber"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                        <div class="kpi-info">
+                            <h3>Tendencia del Día</h3>
+                            <p class="kpi-value" id="kpi-trend-day">--</p>
+                            <span class="kpi-trend"><i class="fa-solid fa-chart-line"></i> Flujo Noticias</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon bg-purple"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                        <div class="kpi-info">
+                            <h3>Última Detección</h3>
+                            <p class="kpi-value-small" id="kpi-last-report">--:--</p>
+                            <span class="kpi-trend"><i class="fa-solid fa-receipt"></i> Hace unos minutos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CENTRO DE MONITOREO GEOGRÁFICO -->
+                <div class="map-card">
+                    <div class="map-card-header">
+                        <h3><i class="fa-solid fa-map-location-dot"></i> Centro de Monitoreo Geográfico y Fronteras (Amazonas)</h3>
+                        <span class="map-subtitle"><i class="fa-solid fa-circle-info"></i> Haga clic sobre los marcadores para ver las alertas activas en cada sector</span>
+                    </div>
+                    <div id="map-container" class="leaflet-map-wrapper"></div>
+                </div>
+
+                <!-- GRÁFICOS INTERACTIVOS -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Tendencia Temporal (Publicaciones por Día)</h3>
+                        <div class="chart-container">
+                            <canvas id="chart-trend"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Distribución Temática</h3>
+                        <div class="chart-container">
+                            <canvas id="chart-topic"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Menciones por Zona / Municipio</h3>
+                        <div class="chart-container">
+                            <canvas id="chart-location"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Monitoreo por Relevancia</h3>
+                        <div class="chart-container">
+                            <canvas id="chart-relevance"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-grid-secondary">
+                    <div class="chart-card flex-grow-2">
+                        <h3>Top 10 Fuentes con Más Publicaciones</h3>
+                        <div class="chart-container">
+                            <canvas id="chart-source"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Palabras Clave Críticas Frecuentes</h3>
+                        <div class="keyword-cloud-list" id="kws-list">
+                            <!-- Inyectado desde JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: FEED DE NOTICIAS -->
+            <section class="tab-content" id="tab-feed">
+                <!-- BARRA DE FILTROS -->
+                <div class="filter-panel">
+                    <div class="filter-row">
+                        <div class="filter-group flex-grow-3">
+                            <label for="filter-search"><i class="fa-solid fa-magnifying-glass"></i> Buscar Palabra Clave</label>
+                            <input type="text" id="filter-search" placeholder="Buscar por título, resumen, nota o palabra clave...">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-relevance">Relevancia</label>
+                            <select id="filter-relevance">
+                                <option value="">Todos</option>
+                                <option value="ALTA">Alta</option>
+                                <option value="MEDIA">Media</option>
+                                <option value="BAJA">Baja</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-topic">Tema principal</label>
+                            <select id="filter-topic">
+                                <option value="">Todos</option>
+                                <option value="Seguridad">Seguridad</option>
+                                <option value="Judicial">Judicial</option>
+                                <option value="Medio Ambiente">Medio Ambiente</option>
+                                <option value="Salud">Salud</option>
+                                <option value="Turismo">Turismo</option>
+                                <option value="Frontera">Frontera</option>
+                                <option value="Politica">Política</option>
+                                <option value="Emergencia">Emergencia</option>
+                                <option value="Comunidad Indígena">Comunidad Indígena</option>
+                                <option value="General">General</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-location">Ubicación / Zona</label>
+                            <select id="filter-location">
+                                <option value="">Todos</option>
+                                <option value="Leticia">Leticia</option>
+                                <option value="Puerto Nariño">Puerto Nariño</option>
+                                <option value="Tarapacá">Tarapacá</option>
+                                <option value="La Pedrera">La Pedrera</option>
+                                <option value="Puerto Santander">Puerto Santander</option>
+                                <option value="Mirití Paraná">Mirití Paraná</option>
+                                <option value="La Chorrera">La Chorrera</option>
+                                <option value="El Encanto">El Encanto</option>
+                                <option value="Puerto Arica">Puerto Arica</option>
+                                <option value="La Victoria">La Victoria</option>
+                                <option value="Frontera - Brasil">Frontera - Brasil (Tabatinga/Benjamin)</option>
+                                <option value="Frontera - Perú">Frontera - Perú (Iquitos/Santa Rosa)</option>
+                                <option value="Río Amazonas">Río Amazonas</option>
+                                <option value="Triple Frontera">Triple Frontera</option>
+                                <option value="General">General</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-source-type">Tipo de Fuente</label>
+                            <select id="filter-source-type">
+                                <option value="">Todos</option>
+                                <option value="Noticia">Noticia</option>
+                                <option value="Red Social">Red Social</option>
+                                <option value="Comunicado Oficial">Comunicado Oficial</option>
+                                <option value="Video">Video</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-status">Estado</label>
+                            <select id="filter-status">
+                                <option value="">Activos (No desc.)</option>
+                                <option value="Nuevo">Nuevo</option>
+                                <option value="Revisado">Revisado</option>
+                                <option value="Importante">Importante</option>
+                                <option value="Descartado">Descartado (Histórico)</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-start-date">F. Inicio</label>
+                            <input type="date" id="filter-start-date">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-end-date">F. Fin</label>
+                            <input type="date" id="filter-end-date">
+                        </div>
+                        <div class="filter-group filter-actions-group">
+                            <button class="btn btn-secondary" id="btn-clear-filters" title="Limpiar Filtros">
+                                <i class="fa-solid fa-filter-circle-xmark"></i> Limpiar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-row filter-row-checkboxes">
+                        <label class="checkbox-filter">
+                            <input type="checkbox" id="chk-only-critical">
+                            <span class="custom-chk"></span>
+                            <i class="fa-solid fa-triangle-exclamation text-alert"></i> Solo Alertas Críticas
+                        </label>
+                        <label class="checkbox-filter">
+                            <input type="checkbox" id="chk-only-new">
+                            <span class="custom-chk"></span>
+                            <i class="fa-solid fa-circle-exclamation blink"></i> Solo Noticias Nuevas
+                        </label>
+                        <label class="checkbox-filter">
+                            <input type="checkbox" id="chk-only-important">
+                            <span class="custom-chk"></span>
+                            <i class="fa-solid fa-star text-star"></i> Solo Importantes
+                        </label>
+                    </div>
+                </div>
+
+                <!-- TABLA / LISTA DE RESULTADOS -->
+                <div class="results-table-container">
+                    <div class="table-header-bar">
+                        <div class="table-selection-actions">
+                            <span id="selected-count-text">0 seleccionadas para Reporte Flash</span>
+                            <button class="btn btn-secondary btn-sm" id="btn-select-all-visible" style="display:none;">
+                                <i class="fa-solid fa-square-check"></i> Seleccionar todas
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="btn-clear-selection">
+                                <i class="fa-solid fa-square"></i> Desmarcar
+                            </button>
+                        </div>
+                        <div class="table-export-dropdown">
+                            <button class="btn btn-sm btn-primary" id="btn-export-selected-excel">
+                                <i class="fa-solid fa-file-excel"></i> Excel
+                            </button>
+                            <button class="btn btn-sm btn-secondary" id="btn-export-selected-json">
+                                <i class="fa-solid fa-code"></i> JSON
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    <th width="40"><input type="checkbox" id="select-all-checkbox"></th>
+                                    <th width="120">Fecha / Hora</th>
+                                    <th>Título / Información</th>
+                                    <th width="120">Fuente</th>
+                                    <th width="100">Ubicación</th>
+                                    <th width="100">Tema</th>
+                                    <th width="90">Relevancia</th>
+                                    <th width="90">Estado</th>
+                                    <th width="120">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="news-table-body">
+                                <!-- Filas inyectadas por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginación o indicador de carga -->
+                    <div class="table-footer-bar">
+                        <span id="table-total-records">Cargando registros...</span>
+                        <div class="pagination">
+                            <button class="btn btn-icon btn-sm" id="btn-prev-page"><i class="fa-solid fa-chevron-left"></i></button>
+                            <span id="page-indicator">Página 1</span>
+                            <button class="btn btn-icon btn-sm" id="btn-next-page"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: ALERTAS CRÍTICAS -->
+            <section class="tab-content" id="tab-alerts">
+                <div class="alerts-tab-header">
+                    <h2><i class="fa-solid fa-circle-exclamation text-alert"></i> Monitoreo de Alertas Críticas Recientes</h2>
+                    <p>Filtro en tiempo real de incidentes de orden público, capturas, homicidios y emergencias en el Amazonas</p>
+                </div>
+                
+                <div class="alerts-container-grid" id="alerts-grid">
+                    <!-- Cards de alertas inyectadas por JS -->
+                </div>
+            </section>
+
+            <!-- TAB 4: MÓDULO DE REPORTE FLASH -->
+            <section class="tab-content" id="tab-flash-report">
+                <div class="flash-report-split">
+                    <!-- Panel izquierdo: Noticias seleccionadas -->
+                    <div class="flash-report-sidebar">
+                        <h3>Noticias Seleccionadas</h3>
+                        <p class="help-text">Marque casillas en el Feed de Noticias para agregarlas a este reporte.</p>
+                        <div class="selected-articles-list" id="report-selected-list">
+                            <!-- Inyectado dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Panel derecho: Vista previa y configuración del reporte -->
+                    <div class="flash-report-preview-panel">
+                        <div class="preview-header">
+                            <h2>Vista Previa del Reporte Flash</h2>
+                            <div class="preview-actions">
+                                <button class="btn btn-primary" id="btn-download-pdf">
+                                    <i class="fa-solid fa-file-pdf"></i> Generar PDF
+                                </button>
+                                <button class="btn btn-secondary" id="btn-download-word">
+                                    <i class="fa-solid fa-file-word"></i> Generar Word
+                                </button>
+                                <button class="btn btn-icon" id="btn-print-report" title="Imprimir Reporte">
+                                    <i class="fa-solid fa-print"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Formulario de Configuración de Reporte -->
+                        <div class="report-meta-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="report-periodo">Periodo Monitoreado</label>
+                                    <input type="text" id="report-periodo" value="Últimas 24 Horas" placeholder="Ej: Últimas 24 Horas, Semanal...">
+                                </div>
+                                <div class="form-group">
+                                    <label for="report-elaboro">Elaboró</label>
+                                    <input type="text" id="report-elaboro" value="Analista de Medios CTI Amazonas" placeholder="Nombre o cargo del analista">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vista Previa Imprimible Oficial (Documento Judicial) -->
+                        <div class="official-document-sheet" id="official-document">
+                            <div class="doc-header">
+                                <h2>DIRECCIÓN SECCIONAL AMAZONAS</h2>
+                                <h3>SECCIÓN DE POLICÍA JUDICIAL CTI AMAZONAS</h3>
+                                <h4>REPORTE FLASH DE MONITOREO DE MEDIOS</h4>
+                                <div class="doc-divider"></div>
+                            </div>
+                            
+                            <div id="doc-content-preview">
+                                <!-- Casos seleccionados rellenados aquí -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: CONFIGURACIÓN -->
+            <section class="tab-content" id="tab-settings">
+                <div class="settings-grid">
+                    <!-- Formulario de API Keys -->
+                    <div class="settings-card">
+                        <h3><i class="fa-solid fa-key"></i> Configuración de Credenciales de API</h3>
+                        <p class="settings-help">Ingrese las llaves para habilitar consultas en tiempo real a redes sociales y YouTube. Si están vacías, el sistema operará con feeds públicos y simulaciones de monitoreo.</p>
+                        
+                        <form id="api-keys-form">
+                            <div class="form-group">
+                                <label for="key-youtube">YouTube Data API v3 Key</label>
+                                <input type="password" id="key-youtube" placeholder="API Key oficial de Google Cloud Console">
+                                <span class="key-status" id="status-youtube">Cargando...</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="key-x">X / Twitter Bearer Token (v2)</label>
+                                <input type="password" id="key-x" placeholder="Bearer Token de Developer Portal de X">
+                                <span class="key-status" id="status-x">Cargando...</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="key-facebook">Facebook Graph Access Token</label>
+                                <input type="password" id="key-facebook" placeholder="Token de acceso para páginas públicas de Meta">
+                                <span class="key-status" id="status-facebook">Cargando...</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="key-instagram">Instagram Graph Access Token</label>
+                                <input type="password" id="key-instagram" placeholder="Token de acceso oficial de Instagram Graph API">
+                                <span class="key-status" id="status-instagram">Cargando...</span>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-floppy-disk"></i> Guardar Llaves de API
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Configuración del planificador e ingreso manual -->
+                    <div class="settings-card">
+                        <h3><i class="fa-solid fa-clock-rotate-left"></i> Parámetros de Monitoreo</h3>
+                        
+                        <div class="settings-control-row">
+                            <div class="form-group">
+                                <label for="interval-select">Recarga Automática de Fuentes</label>
+                                <select id="interval-select">
+                                    <option value="5">Cada 5 minutos</option>
+                                    <option value="10">Cada 10 minutos</option>
+                                    <option value="15">Cada 15 minutos</option>
+                                    <option value="30">Cada 30 minutos</option>
+                                    <option value="60">Cada 1 hora</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="card-divider">
+
+                        <h3><i class="fa-solid fa-square-plus"></i> Ingesta Manual de Noticias / Novedades</h3>
+                        <p class="settings-help">Utilice este formulario si desea agregar un reporte manual que no proviene de las fuentes en línea monitoreadas.</p>
+                        
+                        <form id="manual-ingest-form">
+                            <div class="form-group">
+                                <label for="manual-title">Título de la Publicación</label>
+                                <input type="text" id="manual-title" required placeholder="Ej: Homicidio en Leticia en sector fronterizo">
+                            </div>
+                            <div class="form-group">
+                                <label for="manual-url">Enlace o Referencia Única</label>
+                                <input type="text" id="manual-url" required placeholder="Ej: https://fiscalia.gov.co/manual-001">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="manual-source">Fuente / Emisor</label>
+                                    <input type="text" id="manual-source" required placeholder="Ej: Fiscalía Seccional Amazonas">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manual-source-type">Tipo de Medio</label>
+                                    <select id="manual-source-type">
+                                        <option value="Comunicado Oficial">Comunicado Oficial</option>
+                                        <option value="Noticia">Noticia Digital</option>
+                                        <option value="Red Social">Red Social Pública</option>
+                                        <option value="Video">Video / YouTube</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="manual-topic">Tema Principal</label>
+                                    <select id="manual-topic">
+                                        <option value="Seguridad">Seguridad</option>
+                                        <option value="Judicial">Judicial</option>
+                                        <option value="Medio Ambiente">Medio Ambiente</option>
+                                        <option value="Salud">Salud</option>
+                                        <option value="Turismo">Turismo</option>
+                                        <option value="Frontera">Frontera</option>
+                                        <option value="Politica">Política</option>
+                                        <option value="Emergencia">Emergencia</option>
+                                        <option value="Comunidad Indígena">Comunidad Indígena</option>
+                                        <option value="General">General</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="manual-location">Ubicación / Municipio</label>
+                                    <input type="text" id="manual-location" placeholder="Ej: Leticia, Puerto Nariño, Tarapacá...">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manual-relevance">Relevancia Sugerida</label>
+                                    <select id="manual-relevance">
+                                        <option value="ALTA">Alta</option>
+                                        <option value="MEDIA">Media</option>
+                                        <option value="BAJA">Baja</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="manual-summary">Descripción / Resumen de la Publicación</label>
+                                <textarea id="manual-summary" rows="3" placeholder="Contenido o trascripción de la noticia pública..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="manual-notes">Observaciones del Analista</label>
+                                <textarea id="manual-notes" rows="2" placeholder="Notas internas..."></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-secondary">
+                                <i class="fa-solid fa-plus"></i> Ingestar Novedad
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: MONITOREO DE FUENTES -->
+            <section class="tab-content" id="tab-sources">
+                <div class="sources-tab-header">
+                    <h2><i class="fa-solid fa-circle-nodes"></i> Canales y Fuentes de Información Monitoreadas</h2>
+                    <p>Estado de conexión en tiempo real y volumen de registros procesados por canal (OSINT)</p>
+                </div>
+                
+                <div class="sources-status-summary">
+                    <div class="sources-summary-card">
+                        <span class="summary-label">Total Canales</span>
+                        <span class="summary-value" id="sources-total-count">0</span>
+                    </div>
+                    <div class="sources-summary-card">
+                        <span class="summary-label">Fuentes Activas</span>
+                        <span class="summary-value success-text" id="sources-active-count">0</span>
+                    </div>
+                    <div class="sources-summary-card">
+                        <span class="summary-label">Requiere Token/Llave</span>
+                        <span class="summary-value warning-text" id="sources-token-count">0</span>
+                    </div>
+                </div>
+
+                <div class="results-table-container">
+                    <div class="table-responsive">
+                        <table class="results-table sources-table">
+                            <thead>
+                                <tr>
+                                    <th>Fuente / Canal</th>
+                                    <th width="130">Tipo</th>
+                                    <th>Objetivo de Búsqueda / API</th>
+                                    <th width="110">Estado</th>
+                                    <th width="150">Conexión</th>
+                                    <th width="150">Actualización</th>
+                                    <th width="110">Registros</th>
+                                    <th>Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sources-table-body">
+                                <!-- Inyectado dinámicamente desde JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL DE EDICIÓN Y ANÁLISIS DEL ANALISTA -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Análisis Técnico de la Noticia / Reporte</h2>
+                <button class="btn-close" id="btn-close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-article-info">
+                    <p id="modal-art-date" class="meta"></p>
+                    <h3 id="modal-art-title">Título del caso...</h3>
+                    <p id="modal-art-summary" class="summary-box">Resumen de la noticia...</p>
+                    <a id="modal-art-link" href="#" target="_blank" class="btn btn-secondary btn-sm"><i class="fa-solid fa-up-right-from-square"></i> Ver Fuente Original</a>
+                </div>
+                
+                <hr class="card-divider">
+                
+                <form id="edit-article-form">
+                    <input type="hidden" id="edit-art-id">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-relevance">Nivel de Relevancia</label>
+                            <select id="edit-relevance">
+                                <option value="ALTA">ALTA (Homicidios, capturas, orden público, GAO)</option>
+                                <option value="MEDIA">MEDIA (Salud, turismo, comunidades, ambiente)</option>
+                                <option value="BAJA">BAJA (Menciones generales)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-topic">Tema Principal</label>
+                            <select id="edit-topic">
+                                <option value="Seguridad">Seguridad</option>
+                                <option value="Judicial">Judicial</option>
+                                <option value="Medio Ambiente">Medio Ambiente</option>
+                                <option value="Salud">Salud</option>
+                                <option value="Turismo">Turismo</option>
+                                <option value="Frontera">Frontera</option>
+                                <option value="Politica">Política</option>
+                                <option value="Emergencia">Emergencia</option>
+                                <option value="Comunidad Indígena">Comunidad Indígena</option>
+                                <option value="General">General</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-status">Estado de Revisión</label>
+                            <select id="edit-status">
+                                <option value="Nuevo">Nuevo (Sin revisar)</option>
+                                <option value="Revisado">Revisado (Leído)</option>
+                                <option value="Importante">Importante (Priorizado)</option>
+                                <option value="Descartado">Descartado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-location">Lugar / Municipio Relacionado</label>
+                            <input type="text" id="edit-location" placeholder="Leticia, Puerto Nariño, Tarapacá, Río Amazonas...">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-preliminary">Análisis Preliminar</label>
+                        <textarea id="edit-preliminary" rows="3" placeholder="Descripción resumida del caso y contexto judicial/criminalístico..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-impact">Posible Afectación para el Amazonas Colombiano</label>
+                        <textarea id="edit-impact" rows="3" placeholder="¿Cómo incide este hecho en la seguridad, orden público o población civil del departamento?..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-notes">Observaciones del Analista</label>
+                        <textarea id="edit-notes" rows="2" placeholder="Observaciones adicionales, enlaces relacionados, tareas pendientes del CTI..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-elaborated">Elaboró</label>
+                        <input type="text" id="edit-elaborated" placeholder="Cargo/Firma de quien analiza">
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="btn-cancel-edit">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Análisis</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="data/demo-data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

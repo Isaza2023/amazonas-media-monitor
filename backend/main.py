@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, HttpUrl
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, and_, or_, func
+from sqlalchemy import desc, and_, or_, func, literal_column
 
 from backend.database import init_db, get_db, NewsArticle, ApiKeyConfig
 from backend.config import PORT, HOST, DATABASE_URL
@@ -348,9 +348,9 @@ def get_stats(db: Session = Depends(get_db)):
     
     # 1. Noticias por día (últimos 15 días)
     if DATABASE_URL.startswith("sqlite"):
-        day_format = func.strftime('%Y-%m-%d', NewsArticle.publish_date)
+        day_format = literal_column("strftime('%Y-%m-%d', publish_date)")
     else:
-        day_format = func.to_char(NewsArticle.publish_date, 'YYYY-MM-DD')
+        day_format = literal_column("to_char(publish_date, 'YYYY-MM-DD')")
     news_by_day = base_query.with_entities(day_format, func.count(NewsArticle.id))\
         .group_by(day_format)\
         .order_by(day_format)\

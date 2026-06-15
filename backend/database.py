@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, func
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, func, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime
 from backend.config import DATABASE_URL
@@ -14,8 +14,8 @@ class NewsArticle(Base):
     __tablename__ = "news_articles"
 
     id = Column(Integer, primary_key=True, index=True)
-    url = Column(String(500), unique=True, index=True, nullable=False)
-    title = Column(String(500), index=True, nullable=False)
+    url = Column(String(2048), unique=True, index=True, nullable=False)
+    title = Column(String(1000), index=True, nullable=False)
     summary = Column(Text, nullable=True)
     source = Column(String(100), index=True, nullable=False)
     source_type = Column(String(50), index=True, nullable=False)  # Noticia, Red Social, Comunicado Oficial, Video, Boletin
@@ -48,8 +48,18 @@ class ApiKeyConfig(Base):
 
 def init_db():
     Base.metadata.create_all(bind=engine)
-    # Inicializar llaves de API vacías si no existen
     db = SessionLocal()
+    try:
+        # Si la base de datos es PostgreSQL, alterar columnas url y title para soportar URLs de Google News largas
+        if not DATABASE_URL.startswith("sqlite"):
+            db.execute(text("ALTER TABLE news_articles ALTER COLUMN url TYPE VARCHAR(2048);"))
+            db.execute(text("ALTER TABLE news_articles ALTER COLUMN title TYPE VARCHAR(1000);"))
+            db.commit()
+    except Exception as e:
+        print(f"Nota al alterar columnas de base de datos en producción: {e}")
+        db.rollback()
+
+    # Inicializar llaves de API vacías si no existen
     try:
         from backend.config import API_KEYS
         for k_name, k_val in API_KEYS.items():

@@ -12,7 +12,7 @@ from pydantic import BaseModel, HttpUrl
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_, or_, func, literal_column
 
-from backend.database import init_db, get_db, NewsArticle, ApiKeyConfig
+from backend.database import init_db, get_db, NewsArticle, ApiKeyConfig, resolve_existing_google_news_urls
 from backend.config import PORT, HOST, DATABASE_URL
 from backend.utils import (
     normalize_date, extract_location, extract_keywords, 
@@ -108,6 +108,10 @@ def startup_event():
     stop_scheduler = False
     scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
     scheduler_thread.start()
+    
+    # Lanzar la migración de URLs de Google News en segundo plano para limpiar la BD
+    migration_thread = threading.Thread(target=resolve_existing_google_news_urls, daemon=True)
+    migration_thread.start()
 
 @app.on_event("shutdown")
 def shutdown_event():

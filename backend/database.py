@@ -80,3 +80,42 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def resolve_existing_google_news_urls():
+    """Busca artículos con enlaces de Google News en la base de datos y los resuelve."""
+    from backend.database import SessionLocal, NewsArticle
+    from backend.connectors.rss_connector import resolve_google_news_url
+    
+    db = SessionLocal()
+    try:
+        articles = db.query(NewsArticle).filter(NewsArticle.url.like("%news.google.com%")).all()
+        if not articles:
+            return
+        print(f"Migración: Resolviendo {len(articles)} URLs antiguas de Google News...")
+        
+        updated_count = 0
+        for art in articles:
+            try:
+                resolved = resolve_google_news_url(art.url)
+                if resolved != art.url:
+                    exists = db.query(NewsArticle).filter(NewsArticle.url == resolved).first()
+                    if exists:
+                        db.delete(art)
+                    else:
+                        art.url = resolved
+                    updated_count += 1
+                    
+                    if updated_count % 10 == 0:
+                        db.commit()
+            except Exception as inner_e:
+                print(f"Error migrando artículo {art.id}: {inner_e}")
+                
+        db.commit()
+        print(f"Migración: Se actualizaron exitosamente {updated_count} URLs de Google News a sus fuentes originales.")
+    except Exception as e:
+        print(f"Error en migración de URLs de Google News: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
